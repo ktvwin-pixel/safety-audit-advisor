@@ -1,4 +1,4 @@
-const CACHE_NAME = "safety-audit-advisor-v2";
+const CACHE_NAME = "safety-audit-advisor-v3";
 const APP_ASSETS = [
   "./",
   "./index.html",

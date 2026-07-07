@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#c9982f" />
+    <meta name="description" content="중앙정부와 지방정부의 안전감찰 업무를 지원하는 웹 기반 자문 앱" />
+    <title>대한민국 안전감찰 수석 자문 AI</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="assets/icon.svg" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="자문 설정">
+        <div class="brand-block">
+          <div class="emblem" aria-hidden="true">
+            <span></span>
+          </div>
+          <div>
+            <p class="eyebrow">대한민국 안전감찰</p>
+            <h1>수석 자문 AI</h1>
+          </div>
+        </div>
+
+        <section class="control-group">
+          <h2>기관 관점</h2>
+          <div class="segmented" role="radiogroup" aria-label="기관 관점">
+            <label>
+              <input type="radio" name="audience" value="central" checked />
+              <span>중앙정부</span>
+            </label>
+            <label>
+              <input type="radio" name="audience" value="local" />
+              <span>지방정부</span>
+            </label>
+            <label>
+              <input type="radio" name="audience" value="joint" />
+              <span>공동 대응</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="control-group">
+          <h2>감찰 단계</h2>
+          <select id="phase">
+            <option value="prevention">예방·점검</option>
+            <option value="response">상황 대응</option>
+            <option value="audit">현장 감찰</option>
+            <option value="improvement">개선·환류</option>
+          </select>
+        </section>
+
+        <section class="control-group">
+          <h2>입력 유형</h2>
+          <select id="inputType">
+            <option value="auto">자동 판별</option>
+            <option value="url">URL 분석</option>
+            <option value="document">문서·이미지 초안</option>
+            <option value="text">본문 텍스트</option>
+            <option value="interview">인터뷰 자문</option>
+          </select>
+        </section>
+
+        <section class="control-group">
+          <h2>인터뷰 모듈</h2>
+          <label class="toggle-row">
+            <input id="interviewToggle" type="checkbox" />
+            <span>질문지·진술확인서·비교매트릭스 포함</span>
+          </label>
+          <select id="deadlineSelect" aria-label="서면 보완 기한">
+            <option value="48">보완기한 48시간</option>
+            <option value="24">보완기한 24시간</option>
+            <option value="72">보완기한 72시간</option>
+            <option value="120">보완기한 120시간</option>
+          </select>
+        </section>
+
+        <section class="control-group">
+          <h2>핵심 원칙</h2>
+          <div class="principle-list">
+            <span>사실 확인</span>
+            <span>책임 구조</span>
+            <span>현장 작동성</span>
+            <span>재발 방지</span>
+          </div>
+        </section>
+
+        <section class="control-group org-control">
+          <h2>기관 맞춤 설정</h2>
+          <input id="orgNameInput" type="text" placeholder="기관명 예: ○○시, 행정안전부" />
+          <select id="orgTypeSelect" aria-label="기관 유형">
+            <option value="local">지방정부</option>
+            <option value="central">중앙정부</option>
+            <option value="public">공공기관</option>
+          </select>
+          <input id="homeUrlInput" type="url" placeholder="공식 홈페이지 URL" />
+          <input id="lawUrlInput" type="url" placeholder="자치법규·훈령·예규 URL" />
+          <input id="planUrlInput" type="url" placeholder="안전관리계획·재난관리기금 URL" />
+          <textarea id="localContextInput" placeholder="지역·기관 특성, 주요 위험시설, 최근 현안, 인구·산업·복지시설 특성 등을 입력"></textarea>
+          <div class="memory-actions">
+            <button id="saveOrgBtn" type="button">기관 설정 저장</button>
+            <button id="clearOrgBtn" type="button">초기화</button>
+          </div>
+          <p id="orgStatus">공통 법령 기준으로 답변함.</p>
+        </section>
+
+        <section class="control-group memory-control">
+          <h2>GPTs 누적 자문 반영</h2>
+          <textarea
+            id="memoryInput"
+            placeholder="기존 GPTs에서 오간 주요 문의·답변을 붙여 넣으면 이후 답변에 함께 반영됩니다."
+          ></textarea>
+          <div class="memory-actions">
+            <button id="saveMemoryBtn" type="button">반영</button>
+            <button id="clearMemoryBtn" type="button">삭제</button>
+          </div>
+          <p id="memoryStatus">기본 안전감찰 지식이 반영되어 있습니다.</p>
+        </section>
+
+        <section class="control-group install-control">
+          <h2>다른 기기 사용</h2>
+          <button id="installBtn" type="button">앱 설치</button>
+          <p>외부 Wi-Fi·모바일데이터 접속은 HTTPS 공개 주소가 필요함.</p>
+          <div class="address-format">
+            <span>권장 주소</span>
+            <code>https://기관도메인/safety-audit-advisor/</code>
+            <code>https://기관도메인/안전감찰-ai/</code>
+          </div>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <section class="query-panel" aria-label="안전감찰 질의">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Integrated Safety Audit Advisory</p>
+              <h2>질문을 입력하면 감찰 맥락까지 정리합니다</h2>
+            </div>
+            <button id="clearBtn" class="icon-button" type="button" title="초기화" aria-label="초기화">
+              <span aria-hidden="true">↺</span>
+            </button>
+          </div>
+
+          <textarea
+            id="question"
+            placeholder="URL, 감찰보고서 본문, 인터뷰 사안, 조례·규칙 검토 요청 등을 입력하십시오."
+          ></textarea>
+
+          <div class="file-row">
+            <label for="fileInput">문서·이미지 첨부</label>
+            <input id="fileInput" type="file" accept=".txt,.csv,.md,.pdf,.doc,.docx,.hwp,.hwpx,.png,.jpg,.jpeg" />
+            <p id="fileStatus">첨부가 없는 경우 입력 본문을 기준으로 분석함.</p>
+          </div>
+
+          <div class="quick-prompts" aria-label="예시 질의">
+            <button type="button">다중이용시설 점검 기준</button>
+            <button type="button">재난 대응 매뉴얼 미작동</button>
+            <button type="button">기관 간 책임 공백</button>
+            <button type="button">사후 개선명령 설계</button>
+            <button type="button">보조금·위탁 안전관리</button>
+            <button type="button">민원·언론 대응</button>
+            <button type="button">조례 정합성 URL 분석</button>
+            <button type="button">피감기관 면담 질문지</button>
+            <button type="button">시설물 사고 면담 질문지</button>
+            <button type="button">무응답 보완통지서</button>
+            <button type="button">다수 진술 비교 매트릭스</button>
+            <button type="button">복지시설 화재 인터뷰</button>
+            <button type="button">안전감찰 기구·개요</button>
+          </div>
+
+          <div class="action-row">
+            <button id="answerBtn" class="primary-button" type="button">
+              <span aria-hidden="true">◆</span>
+              자문 답변 생성
+            </button>
+            <p id="statusText" role="status">질의 내용을 입력해 주세요.</p>
+          </div>
+        </section>
+
+        <section class="answer-layout">
+          <article class="answer-card" aria-label="자문 답변">
+            <div class="answer-header">
+              <div>
+                <p class="eyebrow">Advisory Draft</p>
+                <h2>통합 자문 답변</h2>
+              </div>
+              <div class="answer-tools">
+                <span id="modeBadge">중앙정부 관점</span>
+                <button id="docxBtn" type="button">DOCX</button>
+                <button id="pdfBtn" type="button">PDF</button>
+                <button id="googleDocBtn" type="button">구글문서용</button>
+                <button id="xlsxBtn" type="button">진술매트릭스 XLSX</button>
+              </div>
+            </div>
+            <div id="answerBody" class="answer-body empty-state">
+              안전감찰은 상대 기관을 겨누는 창과 방패의 관계가 아니라, 위험이 실제로 낮아지도록 권한·책임·현장 실행을 한 화면에 놓고 조정하는 과정입니다.
+            </div>
+          </article>
+
+          <aside class="insight-rail" aria-label="감찰 프레임">
+            <section>
+              <h3>답변 구조</h3>
+              <ol>
+                <li>현황 분석</li>
+                <li>법적 검토</li>
+                <li>비교 분석</li>
+                <li>조치 계획</li>
+                <li>추가 입력 요청</li>
+              </ol>
+            </section>
+            <section>
+              <h3>반영된 지식</h3>
+              <p id="knowledgeStatus">부처별 법령군, 정책 지침, 통계·공식자료 교차검증 프레임을 함께 참조합니다.</p>
+            </section>
+            <section>
+              <h3>문체 기준</h3>
+              <p>법적 근거와 객관적 데이터를 중심으로 공문서형 문체를 적용함.</p>
+            </section>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

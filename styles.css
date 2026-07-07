@@ -250,15 +250,26 @@ select {
   line-height: 1.5;
 }
 
-.install-control button {
+.install-control button,
+.install-control a {
   width: 100%;
   min-height: 40px;
+  display: grid;
+  place-items: center;
   border: 1px solid rgba(230, 189, 95, 0.5);
   border-radius: 8px;
   color: #1f1708;
   background: linear-gradient(135deg, #ffe28c, #bf8726);
   font-weight: 900;
+  text-align: center;
+  text-decoration: none;
   cursor: pointer;
+}
+
+.install-control a {
+  margin-top: 8px;
+  color: var(--white);
+  background: rgba(255, 249, 236, 0.08);
 }
 
 .install-control p {

@@ -1182,24 +1182,24 @@ function buildInterviewModule(deadline) {
 }
 
 function shouldUseFacilityAccidentBackdata(question, profiles) {
-  const target = `${question}\n${getMemory()}`;
+  const target = question;
   const profileHit = profiles.some((profile) => ["facility", "industry"].includes(profile.id));
   const keywordHit = facilityAccidentInterviewBackdata.triggerKeywords.some((keyword) => target.includes(keyword));
   return profileHit && keywordHit;
 }
 
 function shouldUseNonResponseNoticeBackdata(question) {
-  const target = `${question}\n${getMemory()}`;
+  const target = question;
   return nonResponseNoticeBackdata.triggerKeywords.some((keyword) => target.includes(keyword));
 }
 
 function shouldUseStatementMatrixTemplate(question) {
-  const target = `${question}\n${getMemory()}`;
+  const target = question;
   return statementMatrixTemplate.triggerKeywords.some((keyword) => target.includes(keyword));
 }
 
 function shouldUseWelfareFireInterviewBackdata(question) {
-  const target = `${question}\n${getMemory()}`;
+  const target = question;
   return welfareFireInterviewBackdata.triggerKeywords.some((keyword) => target.includes(keyword));
 }
 

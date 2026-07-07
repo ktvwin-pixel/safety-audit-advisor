@@ -1,0 +1,20 @@
+{
+  "name": "대한민국 안전감찰 수석 자문 AI",
+  "short_name": "안전감찰 자문AI",
+  "description": "중앙정부와 지방정부의 안전감찰 업무를 지원하는 웹 기반 자문 앱",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#17130a",
+  "theme_color": "#c9982f",
+  "lang": "ko-KR",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -15,6 +15,7 @@ const pdfBtn = document.querySelector("#pdfBtn");
 const googleDocBtn = document.querySelector("#googleDocBtn");
 const xlsxBtn = document.querySelector("#xlsxBtn");
 const installBtn = document.querySelector("#installBtn");
+const packageDownloadBtn = document.querySelector("#packageDownloadBtn");
 const promptButtons = document.querySelectorAll(".quick-prompts button");
 const orgNameInput = document.querySelector("#orgNameInput");
 const orgTypeSelect = document.querySelector("#orgTypeSelect");
@@ -549,18 +550,73 @@ function getOrgProfile() {
   }
 }
 
+const INSTITUTION_DOMAIN_NAMES = {
+  "mois.go.kr": "행정안전부",
+  "molit.go.kr": "국토교통부",
+  "motie.go.kr": "산업통상자원부",
+  "mafra.go.kr": "농림축산식품부",
+  "mof.go.kr": "해양수산부",
+  "mogef.go.kr": "여성가족부",
+  "mohw.go.kr": "보건복지부",
+  "mfds.go.kr": "식품의약품안전처",
+  "seoul.go.kr": "서울특별시",
+  "busan.go.kr": "부산광역시",
+  "daegu.go.kr": "대구광역시",
+  "incheon.go.kr": "인천광역시",
+  "gwangju.go.kr": "광주광역시",
+  "daejeon.go.kr": "대전광역시",
+  "ulsan.go.kr": "울산광역시",
+  "sejong.go.kr": "세종특별자치시",
+  "gg.go.kr": "경기도",
+  "gangwon.go.kr": "강원특별자치도",
+  "chungbuk.go.kr": "충청북도",
+  "chungnam.go.kr": "충청남도",
+  "jeonbuk.go.kr": "전북특별자치도",
+  "jeonnam.go.kr": "전라남도",
+  "gb.go.kr": "경상북도",
+  "gyeongnam.go.kr": "경상남도",
+  "jeju.go.kr": "제주특별자치도"
+};
+
+function normalizeUrlCandidate(value) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
+function inferInstitutionNameFromUrl(value) {
+  const candidate = normalizeUrlCandidate(value);
+  if (!candidate) return "";
+  try {
+    const host = new URL(candidate).hostname.replace(/^www\./i, "").toLowerCase();
+    const directName = INSTITUTION_DOMAIN_NAMES[host];
+    if (directName) return directName;
+    const matchedDomain = Object.keys(INSTITUTION_DOMAIN_NAMES).find((domain) => host.endsWith(`.${domain}`));
+    if (matchedDomain) return INSTITUTION_DOMAIN_NAMES[matchedDomain];
+    const label = host.split(".").filter(Boolean)[0];
+    return label ? `${label.toUpperCase()} 기관` : "";
+  } catch {
+    return "";
+  }
+}
+
 function saveOrgProfile() {
+  const normalizedHomeUrl = normalizeUrlCandidate(homeUrlInput.value);
+  if (normalizedHomeUrl) homeUrlInput.value = normalizedHomeUrl;
+  const inferredName = inferInstitutionNameFromUrl(normalizedHomeUrl);
   const profile = {
-    name: orgNameInput.value.trim(),
+    name: orgNameInput.value.trim() || inferredName,
     type: orgTypeSelect.value,
-    homeUrl: homeUrlInput.value.trim(),
-    lawUrl: lawUrlInput.value.trim(),
-    planUrl: planUrlInput.value.trim(),
+    homeUrl: normalizedHomeUrl,
+    lawUrl: normalizeUrlCandidate(lawUrlInput.value),
+    planUrl: normalizeUrlCandidate(planUrlInput.value),
     localContext: localContextInput.value.trim()
   };
   localStorage.setItem(ORG_PROFILE_KEY, JSON.stringify(profile));
   updateOrgStatus();
-  statusText.textContent = "기관 맞춤 설정을 저장함.";
+  statusText.textContent = inferredName && !orgNameInput.value.trim()
+    ? `${profile.name} 기준으로 기관명을 자동 보완하고 맞춤 설정을 저장함.`
+    : "기관 맞춤 설정을 저장함.";
 }
 
 function updateOrgStatus() {
@@ -578,6 +634,15 @@ function updateOrgStatus() {
     orgStatus.textContent = `${label} · ${typeLabel} 맞춤 기준을 답변에 반영함.`;
   } else {
     orgStatus.textContent = "공통 법령 기준으로 답변함.";
+  }
+}
+
+function fillInstitutionNameFromHomeUrl() {
+  if (orgNameInput.value.trim()) return;
+  const inferredName = inferInstitutionNameFromUrl(homeUrlInput.value);
+  if (inferredName) {
+    orgNameInput.value = inferredName;
+    orgStatus.textContent = `${inferredName} 기관명 자동 보완됨. 기관 설정 저장 후 맞춤 답변에 반영함.`;
   }
 }
 
@@ -1457,6 +1522,8 @@ clearMemoryBtn.addEventListener("click", () => {
 });
 
 saveOrgBtn.addEventListener("click", saveOrgProfile);
+homeUrlInput.addEventListener("blur", fillInstitutionNameFromHomeUrl);
+homeUrlInput.addEventListener("change", fillInstitutionNameFromHomeUrl);
 
 clearOrgBtn.addEventListener("click", () => {
   localStorage.removeItem(ORG_PROFILE_KEY);
@@ -1495,11 +1562,14 @@ window.addEventListener("beforeinstallprompt", (event) => {
 
 installBtn.addEventListener("click", async () => {
   if (!pendingInstallPrompt) {
-    statusText.textContent = "브라우저 메뉴의 '앱 설치' 또는 '홈 화면에 추가'를 사용하십시오.";
+    packageDownloadBtn?.click();
+    statusText.textContent = "설치 파일 다운로드를 시작함. 압축 해제 후 기관 공식 홈페이지 URL을 입력하여 맞춤형 가이던스로 저장하십시오.";
     return;
   }
   pendingInstallPrompt.prompt();
   const result = await pendingInstallPrompt.userChoice;
   pendingInstallPrompt = null;
-  statusText.textContent = result.outcome === "accepted" ? "앱 설치가 시작됨." : "앱 설치가 취소됨.";
+  statusText.textContent = result.outcome === "accepted"
+    ? "앱 설치가 시작됨. 최초 실행 후 기관 공식 홈페이지 URL을 입력하면 기관 맞춤 기준으로 보완됨."
+    : "앱 설치가 취소됨. 필요한 경우 설치 파일 다운로드로 PC용 배포본을 내려받을 수 있음.";
 });
